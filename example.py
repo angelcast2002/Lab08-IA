@@ -1,4 +1,5 @@
 from itertools import combinations
+import random
 
 # Definimos los dias disponibles para los examenes
 dias = ['lunes', 'martes', 'miercoles']
@@ -40,37 +41,44 @@ def esValida(asignacion):
 
     return True
 
-class backTraking:
-  def __init__(self, variables, dias, estudiantes_por_examen, esValida):
+class LocalSearch:
+    def __init__(self, variables, dias, estudiantes_por_examen, esValida):
         self.variables = variables
         self.dias = dias
         self.estudiantes_por_examen = estudiantes_por_examen
         self.esValida = esValida
-        self.asignacion = {}
+        self.asignacion = self.generar_asignacion_inicial()
 
-  def backtracking_search(self):
-    # Si la asignación es completa y válida, devolverla
-    if set(self.asignacion.keys()) == set(self.variables) and self.esValida(self.asignacion):
-        return self.asignacion
+    def generar_asignacion_inicial(self):
+        # Generar una asignación inicial aleatoria
+        asignacion = {}
+        for examen in self.variables:
+            asignacion[examen] = random.choice(self.dias)
+        return asignacion
 
-    # Seleccionar un examen sin asignar
-    for examen in self.variables:
-        if examen not in self.asignacion:
-            # Para cada día, asignar ese día al examen y hacer una llamada recursiva
+    def generar_vecinos(self):
+        # Generar todas las soluciones vecinas cambiando un examen de día
+        vecinos = []
+        for examen in self.variables:
             for dia in self.dias:
-                self.asignacion[examen] = dia
-                result = self.backtracking_search()
+                if self.asignacion[examen] != dia:
+                    vecino = self.asignacion.copy()
+                    vecino[examen] = dia
+                    vecinos.append(vecino)
+        return vecinos
 
-                # Si la llamada recursiva devuelve una asignación válida, devolver esa asignación
-                if result is not None:
-                    return result
+    def local_search(self):
+        while True:
+            vecinos = self.generar_vecinos()
+            # Ordenar los vecinos por su valor de evaluación
+            vecinos.sort(key=self.esValida, reverse=True)
+            # Si el mejor vecino es peor que la solución actual, devolver la solución actual
+            if not self.esValida(vecinos[0]):
+                return self.asignacion
+            # Si no, actualizar la solución actual al mejor vecino
+            self.asignacion = vecinos[0]
 
-                # Si no, deshacer la asignación del día al examen
-                del self.asignacion[examen]
 
-    # Si ninguno de los días resulta en una asignación válida, devolver None
-    return None
-
-scheduler = backTraking(variables, dias, estudiantes_por_examen, esValida)
-result = scheduler.backtracking_search()
+scheduler = LocalSearch(variables, dias, estudiantes_por_examen, esValida)
+result = scheduler.local_search()
 print(result)
