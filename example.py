@@ -20,52 +20,33 @@ variables = {examen: dias for examen in examenes}
 
 
 # Definimos la función para verificar si una asignación es válida
-def esValida(self, asignacion):
+def esValida(asignacion):
     # Verificar que los estudiantes que toman el mismo curso no tengan examen el mismo día
-    for examen1, examen2 in combinations(self.variables, 2):
+    for examen1, examen2 in combinations(variables, 2):
         if asignacion[examen1] == asignacion[examen2]:
-            estudiantes_examen1 = set(self.estudiantes_por_examen[examen1])
-            estudiantes_examen2 = set(self.estudiantes_por_examen[examen2])
+            estudiantes_examen1 = set(estudiantes_por_examen[examen1])
+            estudiantes_examen2 = set(estudiantes_por_examen[examen2])
             if len(estudiantes_examen1.intersection(estudiantes_examen2)) > 0:
                 return False
 
     # Verificar que ningún estudiante tenga más de un examen por día
-    for dia in self.dias:
+    for dia in dias:
         examenesPorDia = [examen for examen, diaAsignado in asignacion.items() if diaAsignado == dia]
         estudiantesPorDia = set()
         for examen in examenesPorDia:
-            estudiantesPorDia.update(self.estudiantes_por_examen[examen])
+            estudiantesPorDia.update(estudiantes_por_examen[examen])
         if len(estudiantesPorDia) < len(examenesPorDia):
             return False
 
     return True
 
 class backTraking:
-  def __init__(self, variables, dias, estudiantes_por_examen):
+  def __init__(self, variables, dias, estudiantes_por_examen, esValida):
         self.variables = variables
         self.dias = dias
         self.estudiantes_por_examen = estudiantes_por_examen
+        self.esValida = esValida
         self.asignacion = {}
-
-  def esValida(self, asignacion):
-      # Verificar que los estudiantes que toman el mismo curso no tengan examen el mismo día
-      for examen1, examen2 in combinations(self.variables, 2):
-          if asignacion[examen1] == asignacion[examen2]:
-              estudiantes_examen1 = set(self.estudiantes_por_examen[examen1])
-              estudiantes_examen2 = set(self.estudiantes_por_examen[examen2])
-              if len(estudiantes_examen1.intersection(estudiantes_examen2)) > 0:
-                  return False
-
-      # Verificar que ningún estudiante tenga más de un examen por día
-      for dia in self.dias:
-          examenesPorDia = [examen for examen, diaAsignado in asignacion.items() if diaAsignado == dia]
-          estudiantesPorDia = set()
-          for examen in examenesPorDia:
-              estudiantesPorDia.update(self.estudiantes_por_examen[examen])
-          if len(estudiantesPorDia) < len(examenesPorDia):
-              return False
-
-      return True
 
   def backtracking_search(self):
     # Si la asignación es completa y válida, devolverla
@@ -90,6 +71,6 @@ class backTraking:
     # Si ninguno de los días resulta en una asignación válida, devolver None
     return None
 
-scheduler = backTraking(variables, dias, estudiantes_por_examen)
+scheduler = backTraking(variables, dias, estudiantes_por_examen, esValida)
 result = scheduler.backtracking_search()
 print(result)
